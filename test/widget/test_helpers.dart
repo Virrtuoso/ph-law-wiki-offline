@@ -64,5 +64,6 @@ Future<void> pumpUntilFound(
     if (finder.evaluate().isNotEmpty) return;
     await tester.pump(step);
   }
-  throw TestFailure('Timed out waiting for: ${finder.description}');
-}
+  throw TestFailure(
+    'Timed out waiting for: ${finder.describeMatch(Plurality.many)}',
+  );
