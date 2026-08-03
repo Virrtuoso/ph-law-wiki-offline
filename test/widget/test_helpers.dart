@@ -67,3 +67,4 @@ Future<void> pumpUntilFound(
   throw TestFailure(
     'Timed out waiting for: ${finder.describeMatch(Plurality.many)}',
   );
+}
