@@ -1,3 +1,4 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -49,4 +50,19 @@ Future<List<Override>> buildTestOverrides() async {
     // can resolve immediately instead of touching the real singleton.
     appInitProvider.overrideWith((ref) async {}),
   ];
+}
+
+/// Pumps frames in fixed steps until [finder] matches at least one widget.
+/// Fails with a clear error instead of hanging on unbounded settle calls.
+Future<void> pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  int maxPumps = 60,
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  for (var i = 0; i < maxPumps; i++) {
+    if (finder.evaluate().isNotEmpty) return;
+    await tester.pump(step);
+  }
+  throw TestFailure('Timed out waiting for: ${finder.description}');
 }
