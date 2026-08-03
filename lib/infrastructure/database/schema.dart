@@ -125,18 +125,23 @@ class Schema {
     )
   ''';
 
-  /// All statements required to build a fresh database, in dependency order.
-  static const List<String> createStatements = [
+  /// Statements for core schema objects that do not require optional SQLite
+  /// modules.
+  static const List<String> createCoreStatements = [
     createLaws,
     createHierarchyNodes,
     createArticles,
-    createArticlesFts,
-    createArticlesFtsInsertTrigger,
-    createArticlesFtsDeleteTrigger,
-    createArticlesFtsUpdateTrigger,
     createCrossReferences,
     createBookmarks,
     createNotes,
     createAppMetadata,
+  ];
+
+  /// Statements for optional FTS objects.
+  static const List<String> createFtsStatements = [
+    createArticlesFts,
+    createArticlesFtsInsertTrigger,
+    createArticlesFtsDeleteTrigger,
+    createArticlesFtsUpdateTrigger,
   ];
 }

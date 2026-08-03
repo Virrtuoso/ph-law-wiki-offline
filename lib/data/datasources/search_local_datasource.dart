@@ -54,6 +54,18 @@ class SearchLocalDataSource {
     );
   }
 
+  static Future<bool> hasFtsTable(Database db) async {
+    final rows = await db.rawQuery(
+      '''
+      SELECT 1
+      FROM sqlite_master
+      WHERE type = 'table' AND name = 'articles_fts'
+      LIMIT 1
+      ''',
+    );
+    return rows.isNotEmpty;
+  }
+
   /// Simple substring fallback used when FTS5 is not available.
   static Future<List<Map<String, Object?>>> searchLike(
     Database db,
