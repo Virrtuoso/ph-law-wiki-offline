@@ -23,10 +23,13 @@ void main() {
       ),
     );
 
+    // Simulate the real Android scenario: the FTS module is absent.
+    // Using a made-up module name exercises the same "no such module"
+    // error path that fts5 produces on stripped SQLite builds.
     final created = await Migrations.createFtsObjectsIfSupported(
       db,
       statements: const [
-        'CREATE VIRTUAL TABLE articles_fts USING fts_not_available(body)',
+        'CREATE VIRTUAL TABLE articles_fts USING fts5_unavailable(body)',
       ],
     );
 
@@ -35,6 +38,32 @@ void main() {
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'articles'",
     );
     expect(tables, isNotEmpty);
+    await db.close();
+  });
+
+  test('createFtsObjectsIfSupported rethrows unrelated database errors', () async {
+    final db = await databaseFactory.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(
+        version: Schema.schemaVersion,
+        onCreate: (db, version) async {
+          for (final statement in Schema.createCoreStatements) {
+            await db.execute(statement);
+          }
+        },
+      ),
+    );
+
+    // A syntax error is unrelated to a missing module and must not be
+    // silently swallowed.
+    await expectLater(
+      Migrations.createFtsObjectsIfSupported(
+        db,
+        statements: const ['THIS IS NOT VALID SQL'],
+      ),
+      throwsA(isA<Exception>()),
+    );
+
     await db.close();
   });
 }

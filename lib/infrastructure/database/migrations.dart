@@ -39,8 +39,13 @@ class Migrations {
   }
 
   static bool _isMissingFtsModuleError(DatabaseException exception) {
-    final message = exception.toString().toLowerCase();
-    return message.contains('no such module') && message.contains('fts5');
+    // "no such module: <name>" is the only error class emitted when a
+    // CREATE VIRTUAL TABLE statement references a SQLite module that the
+    // runtime build does not include (e.g. fts5 on stripped Android
+    // SQLite builds).  Any other DatabaseException (syntax error,
+    // constraint violation, etc.) is intentionally re-thrown so it is
+    // not silently swallowed.
+    return exception.toString().toLowerCase().contains('no such module');
   }
 
   static Future<void> onUpgrade(
