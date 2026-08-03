@@ -23,8 +23,8 @@ void main() {
       );
       await pumpUntilFound(tester, find.byKey(const ValueKey('home-search-field')));
 
-      // Navigate directly via the router by pushing the search screen and
-      // opening a known seeded article (Civil Code Art. 37).
+      // Use the home-screen search flow to open a known seeded article
+      // (Civil Code Art. 37).
       await tester.enterText(
         find.byKey(const ValueKey('home-search-field')),
         'juridical',
