@@ -17,7 +17,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(overrides: overrides, child: const PhLawWikiApp()),
       );
-      await tester.pumpAndSettle();
+      await pumpUntilFound(tester, find.byKey(const ValueKey('home-search-field')));
 
       // Enter a query on the home screen and submit it.
       await tester.enterText(
@@ -25,7 +25,12 @@ void main() {
         'juridical',
       );
       await tester.testTextInput.receiveAction(TextInputAction.search);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await pumpUntilFound(
+        tester,
+        find.byKey(const ValueKey('search-screen-field')),
+      );
+      await pumpUntilFound(tester, find.textContaining('Art. 37'));
 
       // We should now be on the search screen with results.
       expect(find.byKey(const ValueKey('search-screen-field')), findsOneWidget);
@@ -33,7 +38,11 @@ void main() {
 
       // Tapping a result opens the article reader.
       await tester.tap(find.textContaining('Art. 37').first);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await pumpUntilFound(
+        tester,
+        find.textContaining('Juridical Capacity and Capacity to Act'),
+      );
 
       expect(
         find.textContaining('Juridical Capacity and Capacity to Act'),
@@ -55,14 +64,15 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(overrides: overrides, child: const PhLawWikiApp()),
     );
-    await tester.pumpAndSettle();
+    await pumpUntilFound(tester, find.byKey(const ValueKey('home-search-field')));
 
     await tester.enterText(
       find.byKey(const ValueKey('home-search-field')),
       'flag',
     );
     await tester.testTextInput.receiveAction(TextInputAction.search);
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+    await pumpUntilFound(tester, find.textContaining('Flag and Heraldic'));
 
     expect(find.textContaining('Flag and Heraldic'), findsWidgets);
 
@@ -71,7 +81,11 @@ void main() {
       find.byKey(const ValueKey('search-screen-field')),
       '',
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 150));
+    await pumpUntilFound(
+      tester,
+      find.text('Start typing to search the law catalogue.'),
+    );
 
     expect(
       find.text('Start typing to search the law catalogue.'),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:ph_law_wiki_offline/app.dart';
 
@@ -22,18 +21,20 @@ void main() {
           child: const PhLawWikiApp(),
         ),
       );
-      await tester.pumpAndSettle();
+      await pumpUntilFound(tester, find.byKey(const ValueKey('home-search-field')));
 
-      // Navigate directly via the router by pushing the search screen and
-      // opening a known seeded article (Civil Code Art. 37).
+      // Use the home-screen search flow to open a known seeded article
+      // (Civil Code Art. 37).
       await tester.enterText(
         find.byKey(const ValueKey('home-search-field')),
         'juridical',
       );
       await tester.testTextInput.receiveAction(TextInputAction.search);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await pumpUntilFound(tester, find.textContaining('Art. 37'));
       await tester.tap(find.textContaining('Art. 37').first);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await pumpUntilFound(tester, find.byKey(const ValueKey('bookmark-toggle-button')));
 
       final bookmarkButton = find.byKey(
         const ValueKey('bookmark-toggle-button'),
@@ -48,7 +49,7 @@ void main() {
 
       // Tap to bookmark.
       await tester.tap(bookmarkButton);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 150));
 
       expect(
         tester.widget<IconButton>(bookmarkButton).icon,
@@ -56,9 +57,12 @@ void main() {
       );
 
       // Navigate to the bookmarks screen and confirm the article is listed.
-      final context = tester.element(find.byType(Scaffold).first);
-      context.push('/bookmarks');
-      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bookmarks'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await pumpUntilFound(
+        tester,
+        find.textContaining('Juridical Capacity and Capacity to Act'),
+      );
 
       expect(
         find.textContaining('Juridical Capacity and Capacity to Act'),
@@ -67,9 +71,10 @@ void main() {
 
       // Go back and toggle the bookmark off again.
       await tester.pageBack();
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await pumpUntilFound(tester, find.byKey(const ValueKey('bookmark-toggle-button')));
       await tester.tap(bookmarkButton);
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 150));
 
       expect(
         tester.widget<IconButton>(bookmarkButton).icon,
