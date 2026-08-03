@@ -18,12 +18,18 @@ class SearchRepositoryImpl implements ISearchRepository {
 
     final db = await _databaseHelper.database;
 
+    final hasFts = await SearchLocalDataSource.hasFtsTable(db);
+
     List<Map<String, Object?>> rows;
-    try {
-      rows = await SearchLocalDataSource.searchFts(db, trimmed, limit);
-    } on DatabaseException {
-      // FTS5 may be unavailable on some platforms' bundled SQLite; fall
-      // back to a plain LIKE scan so search still functions.
+    if (hasFts) {
+      try {
+        rows = await SearchLocalDataSource.searchFts(db, trimmed, limit);
+      } on DatabaseException {
+        // If the FTS table exists but querying it fails at runtime, keep
+        // search functional with a plain LIKE scan.
+        rows = await SearchLocalDataSource.searchLike(db, trimmed, limit);
+      }
+    } else {
       rows = await SearchLocalDataSource.searchLike(db, trimmed, limit);
     }
 

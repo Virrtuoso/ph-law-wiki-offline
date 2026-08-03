@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:ph_law_wiki_offline/data/repositories/search_repository_impl.dart';
 import 'package:ph_law_wiki_offline/infrastructure/database/database_helper.dart';
+import 'package:ph_law_wiki_offline/infrastructure/database/schema.dart';
 import 'package:ph_law_wiki_offline/infrastructure/seed/seed_data.dart';
 
 void main() {
@@ -66,6 +70,48 @@ void main() {
     test('returns no results for a nonsense query', () async {
       final results = await repository.search('zzzznonexistentqueryzzzz');
       expect(results, isEmpty);
+    });
+  });
+
+  group('SearchRepositoryImpl (fallback without FTS table)', () {
+    late DatabaseHelper fallbackDbHelper;
+    late SearchRepositoryImpl fallbackRepository;
+    late String databasePath;
+    Directory? tempDir;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp(
+        'ph_law_wiki_offline_fallback_',
+      );
+      databasePath = p.join(tempDir!.path, 'fallback.db');
+
+      final db = await databaseFactory.openDatabase(
+        databasePath,
+        options: OpenDatabaseOptions(
+          version: Schema.schemaVersion,
+          onCreate: (db, version) async {
+            for (final statement in Schema.createCoreStatements) {
+              await db.execute(statement);
+            }
+          },
+        ),
+      );
+      await SeedData.seedIfNeeded(db);
+      await db.close();
+
+      fallbackDbHelper = DatabaseHelper.forTesting(testDatabaseName: databasePath);
+      fallbackRepository = SearchRepositoryImpl(databaseHelper: fallbackDbHelper);
+    });
+
+    tearDown(() async {
+      await fallbackDbHelper.close();
+      await tempDir?.delete(recursive: true);
+    });
+
+    test('initialization succeeds and search still returns results', () async {
+      final results = await fallbackRepository.search('juridical');
+      expect(results, isNotEmpty);
+      expect(results.any((r) => r.articleId == 'cc-art-37'), isTrue);
     });
   });
 }
