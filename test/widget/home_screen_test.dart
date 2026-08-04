@@ -7,8 +7,6 @@ import 'package:ph_law_wiki_offline/app.dart';
 import 'test_helpers.dart';
 
 void main() {
-  setUpAll(ensureFfiInitialized);
-
   testWidgets('home screen renders the search bar, offline badge and laws', (
     tester,
   ) async {

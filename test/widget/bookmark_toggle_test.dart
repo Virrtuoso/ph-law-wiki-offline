@@ -7,8 +7,6 @@ import 'package:ph_law_wiki_offline/app.dart';
 import 'test_helpers.dart';
 
 void main() {
-  setUpAll(ensureFfiInitialized);
-
   testWidgets(
     'toggling the bookmark icon on the article reader adds and removes '
     'the article from the bookmarks screen',
