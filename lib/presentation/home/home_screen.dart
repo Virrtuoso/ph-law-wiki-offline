@@ -25,16 +25,25 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: ListView(
+        // Column (not ListView) so quick-actions below the law grid are always
+        // built — ListView lazily omits off-screen children, which broke tests
+        // and a11y that expect Bookmarks/Notes/About without scrolling.
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
+          child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Philippine Law Reference',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Expanded(
+                  child: Text(
+                    'Philippine Law Reference',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 const OfflineBadge(),
               ],
             ),
@@ -84,6 +93,7 @@ class HomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _QuickAction(
+                  key: const ValueKey('quick-action-bookmarks'),
                   icon: Icons.bookmark_outline,
                   label: 'Bookmarks',
                   onTap: () => context.push('/bookmarks'),
@@ -101,6 +111,7 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
           ],
+          ),
         ),
       ),
     );
@@ -144,6 +155,7 @@ class _SearchBarEntryState extends State<_SearchBarEntry> {
 
 class _QuickAction extends StatelessWidget {
   const _QuickAction({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
