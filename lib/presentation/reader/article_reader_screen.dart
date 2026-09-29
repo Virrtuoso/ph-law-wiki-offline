@@ -55,8 +55,10 @@ class _ArticleBody extends ConsumerWidget {
     final isBookmarked = bookmarkState.isBookmarked(article.id);
     final existingNote = noteState.noteFor(article.id);
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
+      child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         lawAsync.when(
           data: (law) => law == null
@@ -143,6 +145,7 @@ class _ArticleBody extends ConsumerWidget {
         const Divider(height: 32),
         const DisclaimerFooter(),
       ],
+      ),
     );
   }
 }
