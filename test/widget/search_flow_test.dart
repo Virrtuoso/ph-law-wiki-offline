@@ -46,11 +46,11 @@ void main() {
         find.textContaining('Juridical Capacity and Capacity to Act'),
         findsWidgets,
       );
-      // The disclaimer footer must be present on the reader screen.
-      expect(
-        find.text('Information only, not legal advice.'),
-        findsOneWidget,
-      );
+      // Disclaimer footer (scroll into view if needed).
+      final disclaimer = find.text('Information only, not legal advice.');
+      await tester.ensureVisible(disclaimer);
+      await tester.pump();
+      expect(disclaimer, findsOneWidget);
     },
   );
 
@@ -70,8 +70,15 @@ void main() {
     );
     await tester.testTextInput.receiveAction(TextInputAction.search);
     await tester.pump(const Duration(milliseconds: 300));
+    // Wait for the search *screen* (home also shows "Flag and Heraldic" on a
+    // law card — do not treat that as a successful search navigation).
+    await pumpUntilFound(
+      tester,
+      find.byKey(const ValueKey('search-screen-field')),
+    );
     await pumpUntilFound(tester, find.textContaining('Flag and Heraldic'));
 
+    expect(find.byKey(const ValueKey('search-screen-field')), findsOneWidget);
     expect(find.textContaining('Flag and Heraldic'), findsWidgets);
 
     // Clearing the search field should show the empty-query prompt.

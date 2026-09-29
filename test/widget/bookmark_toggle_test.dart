@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:ph_law_wiki_offline/app.dart';
 
@@ -54,8 +55,12 @@ void main() {
         isA<Icon>().having((i) => i.icon, 'icon', Icons.bookmark),
       );
 
-      // Navigate to the bookmarks screen and confirm the article is listed.
-      await tester.tap(find.text('Bookmarks'));
+      // Reader has no Bookmarks label; push bookmarks so the stack keeps
+      // the reader underneath for a later return.
+      final routerContext = tester.element(
+        find.byKey(const ValueKey('bookmark-toggle-button')),
+      );
+      GoRouter.of(routerContext).push('/bookmarks');
       await tester.pump(const Duration(milliseconds: 300));
       await pumpUntilFound(
         tester,
@@ -67,15 +72,22 @@ void main() {
         findsWidgets,
       );
 
-      // Go back and toggle the bookmark off again.
-      await tester.pageBack();
+      // Pop back to the reader and toggle the bookmark off again.
+      GoRouter.of(routerContext).pop();
       await tester.pump(const Duration(milliseconds: 300));
-      await pumpUntilFound(tester, find.byKey(const ValueKey('bookmark-toggle-button')));
-      await tester.tap(bookmarkButton);
+      await pumpUntilFound(
+        tester,
+        find.byKey(const ValueKey('bookmark-toggle-button')),
+      );
+      await tester.tap(find.byKey(const ValueKey('bookmark-toggle-button')));
       await tester.pump(const Duration(milliseconds: 150));
 
       expect(
-        tester.widget<IconButton>(bookmarkButton).icon,
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('bookmark-toggle-button')),
+            )
+            .icon,
         isA<Icon>().having((i) => i.icon, 'icon', Icons.bookmark_border),
       );
     },

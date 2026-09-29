@@ -59,12 +59,11 @@ void main() {
     await pumpUntilFound(tester, find.textContaining('Civil Code'));
 
     await tester.tap(find.textContaining('Civil Code').first);
-    await tester.pump(const Duration(milliseconds: 300));
-    await pumpUntilFound(tester, find.textContaining('Civil Code'));
-    expect(find.byKey(const ValueKey('home-search-field')), findsNothing);
-
-    // The browse screen shows the hierarchy for the selected law; the
-    // law title should now appear again as the browse screen's header.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    // Browse screen shows hierarchy nodes for the selected law.
+    await pumpUntilFound(tester, find.textContaining('Preliminary Title'));
+    expect(find.textContaining('Preliminary Title'), findsWidgets);
     expect(find.textContaining('Civil Code'), findsWidgets);
   });
 }
