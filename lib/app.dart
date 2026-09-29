@@ -13,7 +13,7 @@ import 'presentation/reader/article_reader_screen.dart';
 import 'presentation/search/search_screen.dart';
 import 'presentation/settings/settings_screen.dart';
 
-final _router = GoRouter(
+GoRouter _createRouter() => GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
@@ -50,11 +50,27 @@ final _router = GoRouter(
 /// [settingsProvider]) and go_router-based navigation. Every routed page
 /// is wrapped by [_AppInitGate], which blocks rendering behind database
 /// initialization/seeding so no screen ever queries an unseeded database.
-class PhLawWikiApp extends ConsumerWidget {
+///
+/// The [GoRouter] is created per app instance (not a module singleton) so
+/// widget tests that mount multiple apps do not inherit a leftover route.
+class PhLawWikiApp extends ConsumerStatefulWidget {
   const PhLawWikiApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PhLawWikiApp> createState() => _PhLawWikiAppState();
+}
+
+class _PhLawWikiAppState extends ConsumerState<PhLawWikiApp> {
+  late final GoRouter _router = _createRouter();
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
 
     return MaterialApp.router(
