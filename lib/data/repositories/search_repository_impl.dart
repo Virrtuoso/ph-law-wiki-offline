@@ -1,5 +1,4 @@
-import 'package:sqflite/sqflite.dart';
-
+import '../../domain/entities/app_metadata.dart';
 import '../../domain/entities/search_result.dart';
 import '../../domain/repositories/i_search_repository.dart';
 import '../../infrastructure/database/database_helper.dart';
@@ -17,20 +16,24 @@ class SearchRepositoryImpl implements ISearchRepository {
     if (trimmed.isEmpty) return [];
 
     final db = await _databaseHelper.database;
-
-    final hasFts = await SearchLocalDataSource.hasFtsTable(db);
+    final backend = await SearchLocalDataSource.resolveSearchBackend(db);
 
     List<Map<String, Object?>> rows;
-    if (hasFts) {
-      try {
-        rows = await SearchLocalDataSource.searchFts(db, trimmed, limit);
-      } on DatabaseException {
-        // If the FTS table exists but querying it fails at runtime, keep
-        // search functional with a plain LIKE scan.
+    try {
+      rows = await SearchLocalDataSource.searchWithBackend(
+        db,
+        backend,
+        trimmed,
+        limit,
+      );
+    } catch (_) {
+      // Never let a flaky FTS backend freeze or crash search — always fall
+      // back to a plain LIKE scan so the UI stays responsive.
+      if (backend != AppMetadata.searchBackendLike) {
         rows = await SearchLocalDataSource.searchLike(db, trimmed, limit);
+      } else {
+        rethrow;
       }
-    } else {
-      rows = await SearchLocalDataSource.searchLike(db, trimmed, limit);
     }
 
     return rows.map((row) {

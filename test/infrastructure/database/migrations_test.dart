@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:ph_law_wiki_offline/domain/entities/app_metadata.dart';
 import 'package:ph_law_wiki_offline/infrastructure/database/migrations.dart';
 import 'package:ph_law_wiki_offline/infrastructure/database/schema.dart';
 
@@ -64,6 +65,37 @@ void main() {
       throwsA(isA<Exception>()),
     );
 
+    await db.close();
+  });
+
+  test('onCreate records a search backend and leaves core tables intact', () async {
+    final db = await databaseFactory.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(
+        version: Schema.schemaVersion,
+        onCreate: Migrations.onCreate,
+      ),
+    );
+
+    final rows = await db.query(
+      'app_metadata',
+      where: 'key = ?',
+      whereArgs: [AppMetadata.keySearchBackend],
+    );
+    expect(rows, isNotEmpty);
+    expect(
+      rows.first['value'],
+      anyOf(
+        AppMetadata.searchBackendFts5,
+        AppMetadata.searchBackendFts4,
+        AppMetadata.searchBackendLike,
+      ),
+    );
+
+    final articles = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'articles'",
+    );
+    expect(articles, isNotEmpty);
     await db.close();
   });
 }

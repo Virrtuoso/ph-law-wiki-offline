@@ -9,4 +9,11 @@ class AppMetadata {
   static const String keySeeded = 'seeded';
   static const String keyDatasetVersion = 'dataset_version';
   static const String keyLastUpdated = 'last_updated';
+
+  /// How article search is backed on this install: `fts5`, `fts4`, or `like`.
+  static const String keySearchBackend = 'search_backend';
+
+  static const String searchBackendFts5 = 'fts5';
+  static const String searchBackendFts4 = 'fts4';
+  static const String searchBackendLike = 'like';
 }

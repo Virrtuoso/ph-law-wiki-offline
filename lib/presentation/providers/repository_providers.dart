@@ -8,6 +8,7 @@ import '../../domain/repositories/i_search_repository.dart';
 import '../../domain/repositories/i_update_service.dart';
 import '../../infrastructure/database/database_helper.dart';
 import '../../infrastructure/repositories/repository_locator.dart';
+import '../../infrastructure/database/migrations.dart';
 import '../../infrastructure/seed/seed_data.dart';
 
 /// Exposes the domain repository interfaces to the widget tree.
@@ -45,5 +46,6 @@ final updateServiceProvider = Provider<IUpdateService>((ref) {
 /// `app.dart`.
 final appInitProvider = FutureProvider<void>((ref) async {
   final db = await DatabaseHelper.instance.database;
+  await Migrations.ensureSearchBackendMetadata(db);
   await SeedData.seedIfNeeded(db);
 });

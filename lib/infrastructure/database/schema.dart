@@ -51,7 +51,8 @@ class Schema {
     )
   ''';
 
-  static const String createArticlesFts = '''
+  /// FTS5 external-content index (preferred when the module is compiled in).
+  static const String createArticlesFts5 = '''
     CREATE VIRTUAL TABLE articles_fts USING fts5(
       article_id UNINDEXED,
       law_id UNINDEXED,
@@ -63,22 +64,21 @@ class Schema {
     )
   ''';
 
-  // Triggers keep the FTS index in sync with the articles table.
-  static const String createArticlesFtsInsertTrigger = '''
+  static const String createArticlesFts5InsertTrigger = '''
     CREATE TRIGGER articles_ai AFTER INSERT ON articles BEGIN
       INSERT INTO articles_fts(rowid, article_id, law_id, article_number, title, body)
       VALUES (new.rowid, new.id, new.law_id, new.article_number, new.title, new.body);
     END
   ''';
 
-  static const String createArticlesFtsDeleteTrigger = '''
+  static const String createArticlesFts5DeleteTrigger = '''
     CREATE TRIGGER articles_ad AFTER DELETE ON articles BEGIN
       INSERT INTO articles_fts(articles_fts, rowid, article_id, law_id, article_number, title, body)
       VALUES('delete', old.rowid, old.id, old.law_id, old.article_number, old.title, old.body);
     END
   ''';
 
-  static const String createArticlesFtsUpdateTrigger = '''
+  static const String createArticlesFts5UpdateTrigger = '''
     CREATE TRIGGER articles_au AFTER UPDATE ON articles BEGIN
       INSERT INTO articles_fts(articles_fts, rowid, article_id, law_id, article_number, title, body)
       VALUES('delete', old.rowid, old.id, old.law_id, old.article_number, old.title, old.body);
@@ -86,6 +86,49 @@ class Schema {
       VALUES (new.rowid, new.id, new.law_id, new.article_number, new.title, new.body);
     END
   ''';
+
+  /// FTS4 standalone index for Android builds that ship FTS4 but not FTS5.
+  static const String createArticlesFts4 = '''
+    CREATE VIRTUAL TABLE articles_fts USING fts4(
+      article_id,
+      law_id,
+      article_number,
+      title,
+      body,
+      notindexed=article_id,
+      notindexed=law_id
+    )
+  ''';
+
+  static const String createArticlesFts4InsertTrigger = '''
+    CREATE TRIGGER articles_ai AFTER INSERT ON articles BEGIN
+      INSERT INTO articles_fts(article_id, law_id, article_number, title, body)
+      VALUES (new.id, new.law_id, new.article_number, new.title, new.body);
+    END
+  ''';
+
+  static const String createArticlesFts4DeleteTrigger = '''
+    CREATE TRIGGER articles_ad AFTER DELETE ON articles BEGIN
+      DELETE FROM articles_fts WHERE article_id = old.id;
+    END
+  ''';
+
+  static const String createArticlesFts4UpdateTrigger = '''
+    CREATE TRIGGER articles_au AFTER UPDATE ON articles BEGIN
+      DELETE FROM articles_fts WHERE article_id = old.id;
+      INSERT INTO articles_fts(article_id, law_id, article_number, title, body)
+      VALUES (new.id, new.law_id, new.article_number, new.title, new.body);
+    END
+  ''';
+
+  // Back-compat aliases used by older call sites / tests.
+  static const String createArticlesFts = createArticlesFts5;
+  static const String createArticlesFtsInsertTrigger =
+      createArticlesFts5InsertTrigger;
+  static const String createArticlesFtsDeleteTrigger =
+      createArticlesFts5DeleteTrigger;
+  static const String createArticlesFtsUpdateTrigger =
+      createArticlesFts5UpdateTrigger;
 
   static const String createCrossReferences = '''
     CREATE TABLE cross_references (
@@ -137,11 +180,22 @@ class Schema {
     createAppMetadata,
   ];
 
-  /// Statements for optional FTS objects.
-  static const List<String> createFtsStatements = [
-    createArticlesFts,
-    createArticlesFtsInsertTrigger,
-    createArticlesFtsDeleteTrigger,
-    createArticlesFtsUpdateTrigger,
+  /// Statements for optional FTS5 objects.
+  static const List<String> createFts5Statements = [
+    createArticlesFts5,
+    createArticlesFts5InsertTrigger,
+    createArticlesFts5DeleteTrigger,
+    createArticlesFts5UpdateTrigger,
   ];
+
+  /// Statements for optional FTS4 objects.
+  static const List<String> createFts4Statements = [
+    createArticlesFts4,
+    createArticlesFts4InsertTrigger,
+    createArticlesFts4DeleteTrigger,
+    createArticlesFts4UpdateTrigger,
+  ];
+
+  /// Back-compat alias: FTS5 statements.
+  static const List<String> createFtsStatements = createFts5Statements;
 }

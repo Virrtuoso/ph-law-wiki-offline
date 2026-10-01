@@ -46,6 +46,67 @@ GoRouter _createRouter() => GoRouter(
   ],
 );
 
+ThemeData _buildTheme(Brightness brightness) {
+  final base = ColorScheme.fromSeed(
+    seedColor: const Color(0xFF5B6CFF),
+    brightness: brightness,
+  );
+  final scheme = base.copyWith(
+    primary: brightness == Brightness.dark
+        ? const Color(0xFF9AA5FF)
+        : const Color(0xFF3F51B5),
+    secondary: brightness == Brightness.dark
+        ? const Color(0xFF80CBC4)
+        : const Color(0xFF00897B),
+    surface: brightness == Brightness.dark
+        ? const Color(0xFF12141C)
+        : base.surface,
+  );
+
+  return ThemeData(
+    colorScheme: scheme,
+    useMaterial3: true,
+    brightness: brightness,
+    scaffoldBackgroundColor: scheme.surface,
+    appBarTheme: AppBarTheme(
+      centerTitle: false,
+      elevation: 0,
+      backgroundColor: scheme.surface,
+      foregroundColor: scheme.onSurface,
+      titleTextStyle: TextStyle(
+        color: scheme.onSurface,
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.1,
+      ),
+    ),
+    cardTheme: CardThemeData(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    ),
+    dividerTheme: DividerThemeData(
+      color: scheme.outlineVariant.withValues(alpha: 0.4),
+    ),
+    textTheme: ThemeData(
+      brightness: brightness,
+      colorScheme: scheme,
+      useMaterial3: true,
+    ).textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    ),
+  );
+}
+
 /// Root application widget: configures theming (light/dark, driven by
 /// [settingsProvider]) and go_router-based navigation. Every routed page
 /// is wrapped by [_AppInitGate], which blocks rendering behind database
@@ -77,17 +138,8 @@ class _PhLawWikiAppState extends ConsumerState<PhLawWikiApp> {
       title: 'PH Law Wiki (Offline)',
       debugShowCheckedModeBanner: false,
       themeMode: settings.themeMode,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: _buildTheme(Brightness.light),
+      darkTheme: _buildTheme(Brightness.dark),
       routerConfig: _router,
       builder: (context, child) => _AppInitGate(child: child),
     );

@@ -86,7 +86,7 @@ void main() {
       find.byKey(const ValueKey('search-screen-field')),
       '',
     );
-    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(const Duration(milliseconds: 350));
     await pumpUntilFound(
       tester,
       find.text('Start typing to search the law catalogue.'),

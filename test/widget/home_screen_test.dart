@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ph_law_wiki_offline/app.dart';
+import 'package:ph_law_wiki_offline/presentation/widgets/law_card.dart';
 
 import 'test_helpers.dart';
 
@@ -58,7 +59,12 @@ void main() {
     );
     await pumpUntilFound(tester, find.textContaining('Civil Code'));
 
-    await tester.tap(find.textContaining('Civil Code').first);
+    // Civil Code is the first seeded law card; scroll it into the test
+    // viewport before tapping (taller home layout can push it off-screen).
+    final civilCard = find.byType(LawCard).first;
+    await tester.ensureVisible(civilCard);
+    await tester.pump();
+    await tester.tap(civilCard);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     // Browse screen shows hierarchy nodes for the selected law.
